@@ -1,0 +1,44 @@
+﻿@startuml
+
+title Компоненты сервиса устройств Теплый дом
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container(smarthomeApp, "Smarthome system", "Управление системами умного дома")
+    
+Container_Boundary(smarthomeApp, "Smarthome System") {
+  Container(apiGateway, "API Gateway", "Kong", "Маршрутизация запросов к API")
+  Container(deviceService, "Сервис устройств", "Java, Spring", "Сервис управления устройствами умного дома") {
+    Component(controller, "Controller", "Обработка запросов клиента на выгрузку телеметрии")
+    Component(serviceLayer, "Service Layer", "Бизнес логика")
+    Component(repositoryLayer, "Repository Layer", "Слой доступа к данным")
+    Component(userConsumer, "Kafka User Consumer", "Чтение топика")
+    Component("commandProducer", "Kafka Command Producer", "Отправка команд в топик")
+    Component("configProducer", "Kafka Config Producer", "Отправка конфигурации в топик")
+  }
+  ContainerDb(deviceServiceDb, "БД Сервиса устройств", "PostgreSql")
+  ContainerQueue(broker, "Broker", "Kafka", "Брокер сообщений Kafka")
+}
+
+Container_Ext(sensor, "Sensor", "Датчики")
+Container_Ext(remoteControl, "Remote control", "Устройства дистанционного управления")
+
+Rel_D(apiGateway, controller, "CRUD операции с устройствами", "REST")
+Rel_D(controller, serviceLayer, "CRUD операции с устройствами", "REST")
+Rel_D(serviceLayer, repositoryLayer, "CRUD", "SQL")
+Rel_D(repositoryLayer, deviceServiceDb, "CRUD", "SQL")
+
+Rel_D(serviceLayer, commandProducer, "Команды управления")
+Rel_D(commandProducer, broker, "Команды управления", "Protobuf")
+Rel_D(serviceLayer, configProducer, "Конфигурация устройств")
+Rel_D(configProducer, broker, "Конфигурация устройств", "Protobuf")
+Rel_U(userConsumer, serviceLayer, "Изменение состояния пользователя")
+Rel_U(broker, userConsumer, "Изменение состояния пользователя", "Protobuf")
+
+Rel_D(broker, remoteControl, "Команды управления", "Protobuf" )
+Rel_D(broker, remoteControl, "Изменение настроек устройств", "Protobuf" )
+Rel_D(broker, sensor, "Изменение настроек датчиков", "Protobuf" )
+
+@enduml

@@ -1,0 +1,73 @@
+﻿@startuml
+
+title Теплый дом - Entity relationship Diagram
+
+skinparam linetype ortho
+
+entity "User" as user {
+  *id : uuid
+  --
+  *login : nvarchar(50)
+  *name : nvarchar(50)
+  *email : nvarchar(50) [UQ]
+  balance : decimal
+}
+
+entity "Address" as address {
+  *id : uuid
+  --
+  *city : nvarchar(200)
+  *street : nvarchar(200)
+  *house : nvarchar(50)
+  flat : nvarchar(50)
+}
+
+entity "PaymentInformation" as paymentInformation {
+  *id : uuid
+  --
+  *userId : uuid [FK]
+  *customerReference : nvarchar(20)
+}
+
+entity "Housing" as housing {
+  *id : uuid
+  --
+  *name : nvarchar(50)
+  *type : nvarchar(50)
+  *addressId : uuid [FK]
+  +List<User> owners
+  +List<Device> devices
+}
+
+entity userInHousing {
+  *id : uuid
+  --
+  *userId : uuid [FK]
+  *housingId : uuid [FK]
+}
+
+entity "Device" as device {
+  *id : uuid
+  --
+  *serialNumber : nvarchar(50)
+  *discriminator : nvarchar(50)
+  *housingId : uuid [FK]
+  name : nvarchar(200)
+}
+
+entity "Configuration" as configuration {
+  *id : uuid
+  --
+  *name : nvarchar(50)
+  *type : nvarchar(50)
+  *value : nvarchar(50)
+  *deviceId : uuid [FK]
+}
+
+user ||--o{ paymentInformation
+user ||-{ userInHousing
+housing ||-left-{ userInHousing
+housing ||--|| address
+housing ||--o{ device
+device ||--{ configuration
+@enduml

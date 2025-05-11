@@ -1,0 +1,64 @@
+﻿@startuml
+
+title Контейнеры системы Теплый дом
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User", "Владелец дома")
+Person(support, "Applications engineer", "Специалист техподдержки")
+Container(smarthomeApp, "Smarthome system", "Управление системами умного дома")
+    
+Container_Boundary(smarthomeApp, "Smarthome System") {
+  Container(mobileApp, "Mobile Application", "Java", "Подключение, удаление и настройка устройств, управление системами умного дома, получение телеметрии и уведомлений")
+  Container(webApp, "Web Application", "React,Javascript", "Подключение, удаление и настройка устройств, управление системами умного дома, получение телеметрии и уведомлений")
+  
+  Container(apiGateway, "API Gateway", "Kong", "Маршрутизация запросов к API")
+  
+  Container(notificationService, "Сервис уведомлений", "Java, Spring", "Сервис нотификации наступления определенных событий и условий")
+  Container(userService, "Сервис пользователей", "Java, Spring", "Сервис управления клиентами")
+  Container(deviceService, "Сервис устройств", "Java, Spring", "Сервис управления устройствами умного дома")
+  Container(telemetryService, "Сервис телеметрии", "Java, Spring", "Сервис хранения и обработки телеметрии")
+  
+  ContainerDb(notificationServiceDb, "БД Сервиса уведомлений", "PostgreSql")
+  ContainerDb(userServiceDb, "БД Сервиса пользователей", "PostgreSql")
+  ContainerDb(deviceServiceDb, "БД Сервиса устройств", "PostgreSql")
+  ContainerDb(telemetryServiceDb, "БД Сервиса телеметрии", "InfluxDB")
+  
+  ContainerQueue(broker, "Broker", "Kafka", "Брокер сообщений Kafka")
+}
+
+Container_Ext(sensor, "Sensor", "Датчики")
+Container_Ext(remoteControl, "Remote control", "Устройства дистанционного управления")
+
+Rel_D(user, mobileApp, "UI")
+Rel_D(user, webApp, "UI")
+Rel_D(support, mobileApp, "UI")
+Rel_D(support, webApp, "UI")
+
+BiRel_D(webApp, apiGateway, "Запросы к системе, вебхуки для уведомлений", "REST")
+BiRel_D(mobileApp, apiGateway, "Запросы к системе, вебхуки для уведомлений", "REST")
+
+Rel_R(notificationService, notificationServiceDb, "")
+Rel_R(userService, userServiceDb, "")
+Rel_R(deviceService, deviceServiceDb, "")
+Rel_R(telemetryService, telemetryServiceDb, "")
+
+Rel_U(notificationService, apiGateway, "Push уведомления", "REST")
+Rel_D(apiGateway, notificationService, "Изменение настроек уведомления", "REST")
+Rel_D(apiGateway, userService, "CRUD операции с пользователями", "REST")
+Rel_D(apiGateway, deviceService, "CRUD операции с устройствами", "REST")
+Rel_D(apiGateway, telemetryService, "Данные телеметрии", "REST")
+
+Rel_D(userService, broker, "Изменения состояния пользователей", "Protobuf")
+Rel_D(deviceService, broker, "Команды управления", "Protobuf")
+Rel_U(broker, deviceService, "Данные телеметрии, изменения состояния пользователей", "Protobuf")
+Rel_U(broker, notificationService, "Данные телеметрии", "Protobuf")
+Rel_U(broker, telemetryService, "Данные телеметрии", "Protobuf")
+
+Rel_D(broker, remoteControl, "Команды управления и настройки", "Protobuf" )
+Rel_D(broker, sensor, "Настройки", "Protobuf" )
+Rel_U(sensor, broker, "Данные Телеметрии", "Protobuf" )
+
+@enduml

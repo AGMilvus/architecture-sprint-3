@@ -1,0 +1,70 @@
+﻿@startuml
+
+title Теплый дом - OMT Code Diagram
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+class User {
+  +String login
+  +String name
+  +String email
+  +List<Housing> housings
+  +List<PaymentInformation> paymentInformations
+  +Decimal balance
+  +void register()
+  +void login()
+}
+
+class Address {
+  +String city
+  +String street
+  +String house
+  +Int flat
+}
+
+class PaymentInformation {
+  +String customerReference
+}
+
+class Housing {
+  +String name
+  +String type
+  +Address address
+  +List<User> owners
+  +List<Device> devices
+  +void activate()
+  +void cancel()
+}
+
+abstract class Device {
+  +String name
+  +String serialNumber
+  +List<Configuration> configurations
+  +void setConfiguration()
+}
+
+class Sensor {
+  +Decimal value
+  +Decimal getValue()
+}
+
+class Controller {
+  +Decimal value
+}
+
+class Configuration {
+  +String name
+  +String type
+  +String value
+}
+
+User "1" <--* "0..*" PaymentInformation : has
+User "0..*" }--{ "0..*" Housing : owns
+Housing <--* Address : located
+Housing "1" <--* "0..*" Device : has
+Device <|-- Sensor
+Device <|-- Controller
+Device "1" <--* "0..*" Configuration : has
+@enduml

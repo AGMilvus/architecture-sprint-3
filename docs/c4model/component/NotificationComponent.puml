@@ -1,0 +1,37 @@
+﻿@startuml
+
+title Компоненты сервиса уведомлений Теплый дом
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container(smarthomeApp, "Smarthome system", "Управление системами умного дома")
+    
+Container_Boundary(smarthomeApp, "Smarthome System") {
+  Container(apiGateway, "API Gateway", "Kong", "Маршрутизация запросов к API")
+  Container(notificationService, "Сервис уведомлений", "Java, Spring", "Сервис нотификации наступления определенных событий и условий") {
+    Component(controller, "Controller", "Обработка запросов клиента на выгрузку телеметрии")
+    Component(serviceLayer, "Service Layer", "Бизнес логика")
+    Component(repositoryLayer, "Repository Layer", "Слой доступа к данным")
+    Component(telemetryConsumer, "Kafka Telemetry Consumer", "Чтение топика")
+    Component(userConsumer, "Kafka User Consumer", "Чтение топика")
+  }
+  ContainerDb(notificationServiceDb, "БД Сервиса уведомлений", "PostgreSql")
+  ContainerQueue(broker, "Broker", "Kafka", "Брокер сообщений Kafka")
+}
+
+Container_Ext(sensor, "Sensor", "Датчики")
+
+Rel_D(apiGateway, controller, "Изменение настроек", "REST")
+Rel_U(controller, apiGateway, "Push уведомления")
+BiRel_D(controller, serviceLayer, "Изменение настроек, уведомления")
+Rel_D(serviceLayer, repositoryLayer, "Сохранение, \nИзменение, \nЗагрузка настроек")
+Rel_D(repositoryLayer, notificationServiceDb, "Сохранение, \nИзменение, \nЗагрузка настроек", "SQL")
+Rel_U(telemetryConsumer, serviceLayer, "Обработка новых данных телеметрии")
+Rel_U(broker, telemetryConsumer, "Данные телеметрии", "Protobuf")
+Rel_U(sensor, broker, "Данные Телеметрии", "Protobuf" )
+Rel_U(userConsumer, serviceLayer, "Изменение состояния пользователя")
+Rel_U(broker, userConsumer, "Изменение состояния пользователя", "Protobuf")
+
+@enduml
