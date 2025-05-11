@@ -1,0 +1,30 @@
+﻿@startuml
+
+title Компоненты сервиса пользователей Теплый дом
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container(smarthomeApp, "Smarthome system", "Управление системами умного дома")
+    
+Container_Boundary(smarthomeApp, "Smarthome System") {
+  Container(apiGateway, "API Gateway", "Kong", "Маршрутизация запросов к API")
+  Container(userService, "Сервис пользователей", "Java, Spring", "Сервис управления клиентами") {
+    Component(controller, "Controller", "Обработка запросов клиента на выгрузку телеметрии")
+    Component(serviceLayer, "Service Layer", "Бизнес логика")
+    Component(repositoryLayer, "Repository Layer", "Слой доступа к данным")
+    Component("producer", "Kafka Producer", "Отправка команд в топик")
+  }
+  ContainerDb(userServiceDb, "БД Сервиса пользователей", "PostgreSql")
+  ContainerQueue(broker, "Broker", "Kafka", "Брокер сообщений Kafka")
+}
+
+Rel_D(apiGateway, controller, "Авторизация, \nСоздание, редактирование, деактивация", "REST")
+Rel_D(controller, serviceLayer, "Авторизация, \nСоздание, редактирование, деактивация")
+Rel_D(serviceLayer, repositoryLayer, "")
+Rel_D(repositoryLayer, userServiceDb, "CRUD", "SQL")
+Rel_D(serviceLayer, producer, "Обработка новых данных телеметрии")
+Rel_D(producer, broker, "Изменение состояния пользователя")
+
+@enduml

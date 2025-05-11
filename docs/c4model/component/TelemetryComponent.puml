@@ -1,0 +1,37 @@
+﻿@startuml
+
+title Компоненты сервиса телеметрии Теплый дом
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container(smarthomeApp, "Smarthome system", "Управление системами умного дома")
+    
+Container_Boundary(smarthomeApp, "Smarthome System") {
+  Container(apiGateway, "API Gateway", "Kong", "Маршрутизация запросов к API")
+  Container(telemetryService, "Сервис телеметрии", "Java, Spring", "Сервис хранения и обработки телеметрии") {
+    Component(controller, "Controller", "Обработка запросов клиента на выгрузку телеметрии")
+    Component(serviceLayer, "Service Layer", "Бизнес логика")
+    Component(repositoryLayer, "Repository Layer", "Слой доступа к данным")
+    Component("consumer", "Kafka Consumer", "Чтение топика")
+    Component("producer", "Kafka Producer", "Отправка команд в топик")
+  }
+  ContainerDb(telemetryServiceDb, "БД Сервиса телеметрии", "InfluxDB")
+  ContainerQueue(broker, "Broker", "Kafka", "Брокер сообщений Kafka")
+}
+Container_Ext(sensor, "Sensor", "Датчики")
+Container_Ext(remoteControl, "Remote control", "Устройства дистанционного управления")
+
+Rel_D(apiGateway, controller, "Запрос данных телеметрии", "REST")
+Rel_D(controller, serviceLayer, "Запрос данных телеметрии")
+Rel_D(serviceLayer, repositoryLayer, "Сохранение,\nВыгрузка")
+Rel_D(repositoryLayer, telemetryServiceDb, "Сохранение,\nЗагрузка", "InfluxQL")
+Rel_U(consumer, serviceLayer, "Обработка новых данных телеметрии")
+Rel_D(serviceLayer, producer, "Отправка команд управления устройствами")
+Rel_U(broker, consumer, "Данные телеметрии", "Protobuf")
+Rel_U(producer, broker, "Команды управления", "Protobuf")
+Rel_D(broker, remoteControl, "Команды управления", "Protobuf" )
+Rel_U(sensor, broker, "Данные Телеметрии", "Protobuf" )
+
+@enduml

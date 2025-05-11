@@ -1,0 +1,22 @@
+﻿@startuml
+
+title Контекст системы Теплый дом
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Context.puml
+
+Person(user, "User", "Владелец дома")
+Person(engineer, "Applications engineer", "Технический специалист")
+
+System(WarmHouseApp, "Warm House", "Управление системой отопления и мониторинг температуры")
+
+System_Ext(tempSensor, "Sensor", "Датчик температуры")
+System_Ext(remoteHeaterСontrol, "Remote heater control", "Устройство дистанционного управления отоплением")
+
+Rel(WarmHouseApp,remoteHeaterСontrol,"Управляет системой отопления")
+Rel(WarmHouseApp,tempSensor,"Считывает значение температуры")
+Rel(engineer,WarmHouseApp,"Подключает и настаивает устройства пользователя к системе")
+Rel(user, WarmHouseApp, "Управляет системой отопления и просматривает текущее значение температуры")
+
+@enduml
